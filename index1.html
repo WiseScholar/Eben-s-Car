@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Drive Dashboard</title>
+    <!-- Load Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom Font for a Tech Aesthetic */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap');
+        
+        :root {
+            --primary-color: #00e5ff; /* Cyan */
+            --accent-color: #ff007f; /* Magenta for warnings */
+        }
+
+        .orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Custom Styles for Glow and Realism */
+        .glow-text {
+            text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color);
+        }
+
+        .glow-bg {
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.6), inset 0 0 5px rgba(0, 229, 255, 0.3);
+        }
+
+        .glow-ring {
+            box-shadow: 0 0 15px var(--primary-color), inset 0 0 8px var(--primary-color);
+        }
+
+        /* Gear Shifter Styling */
+        .shifter-track {
+            background-color: #1f2937; /* Dark Gray */
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.8);
+            border: 1px solid #374151;
+        }
+        
+        .shifter-knob {
+            transition: transform 0.3s ease-out;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.2);
+            background: linear-gradient(145deg, #4b5563, #1f2937);
+        }
+
+        /* Simple Gauge Visualization (Using CSS/SVG could be complex, using div rotation for simplicity) */
+        .gauge-needle {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom center;
+            height: 50%;
+            width: 2px;
+            background-color: var(--primary-color);
+            transition: transform 0.1s linear;
+        }
+
+        /* Message Box Styling */
+        #messageBox {
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 text-gray-200 min-h-screen p-4 flex items-center justify-center">
+
+    <!-- Main Dashboard Container -->
+    <div id="dashboard" class="w-full max-w-6xl bg-gray-800 rounded-3xl p-4 md:p-8 shadow-2xl border-2 border-gray-700 overflow-hidden">
+        
+        <!-- Header: Car Status and Branding -->
+        <header class="flex justify-between items-center mb-6">
+            <h1 class="orbitron text-xl md:text-3xl font-bold text-gray-500 transition-colors duration-500" id="carStatusDisplay">
+                SYSTEM OFFLINE
+            </h1>
+            <div class="flex items-center space-x-4">
+                <span id="tempDisplay" class="text-lg md:text-2xl text-yellow-400">22°C</span>
+                <span id="batteryDisplay" class="text-lg md:text-2xl text-green-400">🔋 98%</span>
+            </div>
+        </header>
+
+        <!-- Message Box -->
+        <div id="messageBox" class="fixed top-4 left-1/2 -translate-x-1/2 p-3 rounded-xl shadow-lg z-50 orbitron text-center text-sm font-semibold">
+            <!-- Messages are inserted here -->
+        </div>
+
+        <!-- Main GAUGE and Digital Readout Area -->
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            
+            <!-- Left Panel: Media/Nav (Placeholder) -->
+            <div class="bg-gray-700/50 p-4 rounded-xl shadow-inner border border-gray-700 flex flex-col justify-between h-48 lg:h-auto">
+                <h3 class="orbitron text-lg font-semibold text-gray-300 mb-2">MEDIA & NAV</h3>
+                <div class="text-center">
+                    <p class="text-2xl text-cyan-400 glow-text">Drive Mode: Standard</p>
+                    <p class="text-sm text-gray-400 mt-1">Next Turn: 500m left onto Elm St.</p>
+                </div>
+                <div class="flex justify-around text-4xl text-gray-500">
+                    <button class="hover:text-cyan-400 transition">🎵</button>
+                    <button class="hover:text-cyan-400 transition">🗺️</button>
+                    <button class="hover:text-cyan-400 transition">📞</button>
+                </div>
+            </div>
+
+            <!-- Center: Speedometer and Gear Display -->
+            <div class="col-span-1 lg:col-span-1 flex flex-col items-center justify-center relative p-4 h-64 lg:h-96">
+                
+                <!-- Speed Display -->
+                <div class="orbitron text-center">
+                    <span id="speedDisplay" class="text-7xl lg:text-9xl font-extrabold text-cyan-400 glow-text">0</span>
+                    <span class="text-xl lg:text-3xl text-gray-400 ml-2">MPH</span>
+                </div>
+
+                <!-- Gear Display -->
+                <div class="mt-4 bg-gray-900/70 p-3 rounded-lg shadow-xl border border-cyan-700">
+                    <span class="text-5xl lg:text-6xl font-black text-cyan-400 glow-text orbitron" id="gearDisplay">P</span>
+                </div>
+                
+                <!-- RPM Placeholder (Simple Text) -->
+                <div class="absolute bottom-4 left-4 text-sm text-gray-400">
+                    RPM: <span id="rpmDisplay">0</span>
+                </div>
+                
+                <!-- Fuel Level Placeholder -->
+                <div class="absolute bottom-4 right-4 text-sm text-gray-400">
+                    Fuel: <span id="fuelDisplay">75%</span>
+                </div>
+            </div>
+            
+            <!-- Right Panel: Climate Control (Placeholder) -->
+            <div class="bg-gray-700/50 p-4 rounded-xl shadow-inner border border-gray-700 flex flex-col justify-between h-48 lg:h-auto">
+                <h3 class="orbitron text-lg font-semibold text-gray-300 mb-2">CLIMATE CONTROL</h3>
+                <div class="text-center">
+                    <p class="text-4xl text-red-400">20°C</p>
+                    <p class="text-sm text-gray-400 mt-1">Current Cabin Temp</p>
+                </div>
+                <div class="flex justify-around text-3xl text-gray-500">
+                    <button class="hover:text-blue-400 transition">❄️</button>
+                    <button class="hover:text-red-400 transition">🔥</button>
+                    <button class="hover:text-cyan-400 transition">💨</button>
+                </div>
+            </div>
+
+        </main>
+        
+        <!-- Controls Section -->
+        <section class="grid grid-cols-1 md:grid-cols-5 gap-6 mt-8">
+            
+            <!-- 1. Start Button -->
+            <div class="col-span-1 md:col-span-1 flex justify-center items-center">
+                <button id="startButton" class="relative w-24 h-24 rounded-full bg-gray-900 border-4 border-cyan-600 glow-ring text-lg font-bold transition-all duration-300 hover:bg-gray-700 active:scale-95 text-cyan-400">
+                    PUSH <br> TO <br> START
+                </button>
+            </div>
+            
+            <!-- 2. Light Controls (3 buttons) -->
+            <div class="col-span-1 md:col-span-2 flex justify-around items-center bg-gray-700/50 p-4 rounded-xl">
+                <button id="headlightsButton" data-light="headlights" class="control-button text-2xl p-4 rounded-full bg-gray-900 hover:bg-gray-600 transition duration-200">
+                    💡
+                </button>
+                <button id="signalLeftButton" data-light="signalLeft" class="control-button text-2xl p-4 rounded-full bg-gray-900 hover:bg-gray-600 transition duration-200">
+                    ⬅️
+                </button>
+                <button id="signalRightButton" data-light="signalRight" class="control-button text-2xl p-4 rounded-full bg-gray-900 hover:bg-gray-600 transition duration-200">
+                    ➡️
+                </button>
+            </div>
+
+            <!-- 3. Gear Shifter -->
+            <div class="col-span-1 md:col-span-2 flex justify-center items-center p-4">
+                <div class="shifter-track w-16 md:w-20 h-48 rounded-full flex flex-col justify-between py-4 relative">
+                    <!-- Gear Labels -->
+                    <div class="absolute w-full h-full flex flex-col justify-between items-center text-sm font-semibold text-gray-400 px-1">
+                        <span id="labelP" class="absolute top-2">P</span>
+                        <span id="labelR" class="absolute top-10">R</span>
+                        <span id="labelN" class="absolute top-24">N</span>
+                        <span id="labelD" class="absolute bottom-2">D</span>
+                    </div>
+
+                    <!-- Shifter Knob -->
+                    <div id="shifterKnob" class="shifter-knob w-12 h-12 rounded-full cursor-pointer absolute -left-1/2 transform translate-x-1/2 transition-all duration-300"
+                         style="top: 10px;" data-gear="P">
+                    </div>
+                </div>
+            </div>
+
+        </section>
+        
+        <!-- Footer: Diagnostics/Info -->
+        <footer class="mt-8 pt-4 border-t border-gray-700 text-center text-sm text-gray-500">
+            <p class="orbitron">Quantum Drive OS v1.0 | Diagnostics OK</p>
+        </footer>
+    </div>
+
+
+    <script>
+        // --- State Management ---
+        let carState = {
+            status: 'OFF', // OFF, ACCESSORY, ENGINE_ON
+            gear: 'P',    // P, R, N, D
+            speed: 0,
+            rpm: 0,
+            lights: {
+                headlights: false,
+                signalLeft: false,
+                signalRight: false
+            }
+        };
+
+        const GEAR_POSITIONS = {
+            'P': '10px',
+            'R': '50px',
+            'N': '110px',
+            'D': '170px'
+        };
+
+        // --- DOM Elements ---
+        const startButton = document.getElementById('startButton');
+        const carStatusDisplay = document.getElementById('carStatusDisplay');
+        const speedDisplay = document.getElementById('speedDisplay');
+        const rpmDisplay = document.getElementById('rpmDisplay');
+        const gearDisplay = document.getElementById('gearDisplay');
+        const shifterKnob = document.getElementById('shifterKnob');
+        const controlButtons = document.querySelectorAll('.control-button');
+        const messageBox = document.getElementById('messageBox');
+
+        // --- Utility Functions ---
+
+        /**
+         * Displays a temporary, non-blocking message to the user.
+         * @param {string} msg - The message to display.
+         * @param {string} type - 'success', 'warning', or 'error'.
+         */
+        function showMessage(msg, type = 'info') {
+            const colors = {
+                info: 'bg-cyan-900 text-cyan-200 border-cyan-600',
+                warning: 'bg-yellow-900 text-yellow-200 border-yellow-600',
+                error: 'bg-red-900 text-red-200 border-red-600',
+                success: 'bg-green-900 text-green-200 border-green-600'
+            };
+            
+            messageBox.className = `fixed top-4 left-1/2 -translate-x-1/2 p-3 rounded-xl shadow-lg z-50 orbitron text-center text-sm font-semibold border ${colors[type]}`;
+            messageBox.textContent = msg;
+            messageBox.style.opacity = '1';
+
+            setTimeout(() => {
+                messageBox.style.opacity = '0';
+            }, 3000);
+        }
+
+        /**
+         * Renders the current state of the dashboard elements.
+         */
+        function renderDashboard() {
+            // Update Car Status
+            let statusText = carState.status.replace('_', ' ');
+            carStatusDisplay.textContent = statusText;
+            
+            let statusColor = 'text-gray-500';
+            if (carState.status === 'ACCESSORY') {
+                statusColor = 'text-yellow-400';
+            } else if (carState.status === 'ENGINE_ON') {
+                statusColor = 'text-green-400 glow-text';
+            }
+            carStatusDisplay.className = `orbitron text-xl md:text-3xl font-bold transition-colors duration-500 ${statusColor}`;
+
+            // Update Speed/RPM
+            speedDisplay.textContent = carState.speed.toFixed(0);
+            rpmDisplay.textContent = carState.rpm.toFixed(0);
+
+            // Update Gear
+            gearDisplay.textContent = carState.gear;
+            
+            // Update Lights
+            controlButtons.forEach(button => {
+                const lightKey = button.dataset.light;
+                if (carState.lights[lightKey]) {
+                    button.classList.add('glow-bg', 'bg-cyan-800', 'text-cyan-200');
+                    button.classList.remove('bg-gray-900', 'text-gray-200');
+                } else {
+                    button.classList.remove('glow-bg', 'bg-cyan-800', 'text-cyan-200');
+                    button.classList.add('bg-gray-900', 'text-gray-200');
+                }
+            });
+
+            // Update Shifter Knob Position
+            const gearPosition = GEAR_POSITIONS[carState.gear];
+            if (gearPosition) {
+                shifterKnob.style.top = gearPosition;
+                
+                // Highlight active gear label
+                document.querySelectorAll('.shifter-track > div > span').forEach(span => {
+                    span.classList.remove('text-cyan-400', 'glow-text');
+                });
+                document.getElementById('label' + carState.gear).classList.add('text-cyan-400', 'glow-text');
+            }
+        }
+
+        // --- Core Logic ---
+
+        /**
+         * Handles the Push-to-Start button sequence.
+         */
+        function handleStartButton() {
+            const currentStatus = carState.status;
+
+            if (currentStatus === 'OFF') {
+                // OFF -> ACCESSORY
+                carState.status = 'ACCESSORY';
+                showMessage('Accessory Mode Activated.', 'success');
+            } else if (currentStatus === 'ACCESSORY') {
+                // ACCESSORY -> ENGINE_ON (Car Start)
+                carState.status = 'ENGINE_ON';
+                carState.rpm = 800; // Idle RPM
+                showMessage('Engine Ignition Complete. Welcome to the Quantum Drive!', 'success');
+                // Allow shift from P to R/D now
+            } else if (currentStatus === 'ENGINE_ON') {
+                // ENGINE_ON -> OFF (Engine Shutdown)
+                if (carState.gear === 'P') {
+                    carState.status = 'OFF';
+                    carState.rpm = 0;
+                    carState.speed = 0;
+                    showMessage('Engine Shut Down. System Offline.', 'warning');
+                } else {
+                    showMessage('Please shift to PARK (P) before turning off the engine.', 'error');
+                }
+            }
+            renderDashboard();
+        }
+
+        /**
+         * Handles gear shifting.
+         * @param {string} newGear - P, R, N, or D.
+         */
+        function handleGearShift(newGear) {
+            const oldGear = carState.gear;
+            
+            if (carState.status === 'OFF') {
+                showMessage('The car is completely off. Cannot shift gears.', 'error');
+                return;
+            }
+
+            if (newGear !== oldGear) {
+                if (carState.status !== 'ENGINE_ON' && newGear !== 'P' && newGear !== 'N') {
+                    showMessage('Engine must be ON to engage Drive or Reverse.', 'warning');
+                    return;
+                }
+                
+                // Simple logic for speed change based on shift
+                if (oldGear === 'D' && newGear !== 'D') {
+                    // Brake when leaving drive
+                    carState.speed = Math.max(0, carState.speed - 15);
+                } else if (newGear === 'R' && carState.speed > 5) {
+                    showMessage('Must be nearly stopped to shift to Reverse.', 'warning');
+                    return;
+                }
+                
+                carState.gear = newGear;
+                showMessage(`Shifted to ${newGear}`, 'info');
+                renderDashboard();
+            }
+        }
+
+        /**
+         * Handles light toggling.
+         * @param {string} lightKey - headlights, signalLeft, or signalRight.
+         */
+        function handleLightToggle(lightKey) {
+            if (carState.status === 'OFF') {
+                showMessage('Car system is offline. Cannot activate lights.', 'error');
+                return;
+            }
+
+            carState.lights[lightKey] = !carState.lights[lightKey];
+            
+            // Logic for turn signals: turn off opposing signal
+            if (lightKey === 'signalLeft' && carState.lights[lightKey]) {
+                carState.lights.signalRight = false;
+            } else if (lightKey === 'signalRight' && carState.lights[lightKey]) {
+                carState.lights.signalLeft = false;
+            }
+            
+            showMessage(`${lightKey.toUpperCase()} Toggled ${carState.lights[lightKey] ? 'ON' : 'OFF'}`, 'info');
+            renderDashboard();
+        }
+
+        /**
+         * Simulation Loop (updates speed and RPM)
+         */
+        function simulationLoop() {
+            if (carState.status === 'ENGINE_ON') {
+                let deltaSpeed = 0;
+                let targetRPM = 800; // Idle
+                
+                if (carState.gear === 'D') {
+                    deltaSpeed = 0.5; // Simulate slow acceleration
+                    targetRPM = 2000 + Math.min(3000, carState.speed * 50); // RPM increases with speed
+                } else if (carState.gear === 'R') {
+                    deltaSpeed = -0.3; // Simulate slow reverse speed
+                    targetRPM = 1500;
+                } else if (carState.gear === 'N') {
+                    // Coasting, speed slowly decreases
+                    if (carState.speed > 0) deltaSpeed = -0.2;
+                    if (carState.speed < 0) deltaSpeed = 0.2;
+                    targetRPM = 800;
+                } else if (carState.gear === 'P') {
+                    // Park, speed must be 0
+                    if (carState.speed !== 0) {
+                        carState.speed = 0;
+                    }
+                }
+
+                // Apply speed change and dampen to keep it smooth
+                carState.speed += deltaSpeed;
+                carState.speed = Math.min(120, Math.max(-10, carState.speed)); // Max speeds
+                if (Math.abs(carState.speed) < 0.1 && (carState.gear === 'N' || carState.gear === 'P')) {
+                     carState.speed = 0;
+                }
+                
+                // Smooth RPM transition
+                carState.rpm += (targetRPM - carState.rpm) * 0.1;
+
+            } else {
+                carState.speed = 0;
+                carState.rpm = 0;
+            }
+
+            renderDashboard();
+            requestAnimationFrame(simulationLoop);
+        }
+
+
+        // --- Event Listeners ---
+        
+        // Start Button
+        startButton.addEventListener('click', handleStartButton);
+        
+        // Light Buttons
+        controlButtons.forEach(button => {
+            button.addEventListener('click', () => handleLightToggle(button.dataset.light));
+        });
+
+        // Gear Shifter (Click on knob to cycle through gears)
+        shifterKnob.addEventListener('click', () => {
+            const gears = ['P', 'R', 'N', 'D'];
+            const currentIndex = gears.indexOf(carState.gear);
+            const nextIndex = (currentIndex + 1) % gears.length;
+            handleGearShift(gears[nextIndex]);
+        });
+        
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderDashboard(); // Initial render
+            simulationLoop();  // Start the simulation loop
+            showMessage('Welcome! Push the Start button to begin.', 'info');
+        });
+
+    </script>
+</body>
+</html>

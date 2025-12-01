@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NEXUS HYPERCAR | Premium Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        :root {
+            --primary: #1a1a2e;
+            --secondary: #16213e;
+            --accent: #00d4ff;
+            --accent-glow: rgba(0, 212, 255, 0.4);
+            --danger: #ff4757;
+            --warning: #ffa502;
+            --success: #2ed573;
+            --text: #ffffff;
+            --text-secondary: #b0b0b0;
+            --dashboard-bg: #0f1525;
+            --panel-bg: rgba(22, 33, 62, 0.8);
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0c0c14, #1a1a2e);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 15px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .dashboard-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--dashboard-bg);
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 25px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            margin: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .car-info h2 {
+            font-size: 2rem;
+            background: linear-gradient(90deg, var(--accent), #a0e7ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 700;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 18px;
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 50px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            font-weight: 600;
+        }
+
+        .connection-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: 0.5
+            }
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 25px;
+            padding: 20px;
+        }
+
+        .left-panel,
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .speed-panel {
+            background: var(--panel-bg);
+            border-radius: 25px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: inset 0 5px 15px rgba(0, 0, 0, 0.4), 0 10px 30px var(--shadow);
+            position: relative;
+        }
+
+        .speed-display {
+            width: 280px;
+            height: 280px;
+            margin: 20px auto;
+            position: relative;
+        }
+
+        .speed-circle {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: conic-gradient(var(--accent) 0%, transparent 80%);
+            box-shadow: 0 0 60px var(--accent-glow), inset 0 0 40px rgba(0, 0, 0, 0.8);
+        }
+
+        .speed-circle::after {
+            content: '';
+            position: absolute;
+            inset: 10%;
+            background: var(--panel-bg);
+            border-radius: 50%;
+        }
+
+        .speed-value {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5.5rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, #fff, var(--accent));
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .speed-unit {
+            font-size: 1.6rem;
+            margin-left: 8px;
+            color: var(--text-secondary);
+        }
+
+        .directional-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .dir-btn {
+            height: 80px;
+            background: rgba(0, 0, 0, 0.3);
+            border: none;
+            border-radius: 18px;
+            color: var(--text);
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: inset 3px 3px 8px rgba(0, 0, 0, 0.4), inset -3px -3px 8px rgba(255, 255, 255, 0.05);
+        }
+
+        .dir-btn:active {
+            transform: scale(0.94);
+            background: rgba(0, 212, 255, 0.3);
+        }
+
+        .forward {
+            grid-column: 2;
+        }
+
+        .left {
+            grid-column: 1;
+            grid-row: 2;
+        }
+
+        .right {
+            grid-column: 3;
+            grid-row: 2;
+        }
+
+        .backward {
+            grid-column: 2;
+            grid-row: 3;
+        }
+
+        #brake-btn {
+            margin-top: 20px;
+            padding: 16px 40px;
+            background: linear-gradient(145deg, #ff4757, #c92a3a);
+            border: none;
+            border-radius: 18px;
+            color: white;
+            font-weight: 700;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(255, 71, 87, 0.4);
+        }
+
+        .gear-panel {
+            position: relative;
+            background: var(--panel-bg);
+            border-radius: 25px;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .gear-stick {
+            width: 100px;
+            height: 220px;
+            background: linear-gradient(145deg, #2a2a3e, #1a1a2a);
+            border-radius: 50px;
+            margin: 20px auto;
+            position: relative;
+            box-shadow: inset 6px 6px 12px rgba(0, 0, 0, 0.5), inset -6px -6px 12px rgba(255, 255, 255, 0.05);
+        }
+
+        .gear-knob {
+            position: absolute;
+            left: 50%;
+            top: 20%;
+            transform: translateX(-50%);
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(145deg, #ffd700, #ffaa00);
+            border-radius: 50%;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
+            transition: top 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+
+        .gear-positions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .gear {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .gear.active {
+            background: var(--accent);
+            color: #000;
+            box-shadow: 0 0 25px var(--accent-glow);
+            transform: scale(1.15);
+        }
+
+        .start-button {
+            width: 130px;
+            height: 130px;
+            margin: 20px auto;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #1a1a2e, #0f1525);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.4s;
+            box-shadow: 8px 8px 20px rgba(0, 0, 0, 0.5), -8px -8px 20px rgba(255, 255, 255, 0.05);
+        }
+
+        .start-button.active {
+            background: linear-gradient(145deg, #ff416c, #ff4b2b);
+            box-shadow: 0 0 50px rgba(255, 65, 108, 0.7);
+        }
+
+        .start-button i {
+            font-size: 3rem;
+            transition: all 0.3s;
+        }
+
+        .start-button.active i {
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1)
+            }
+
+            50% {
+                transform: scale(1.15)
+            }
+        }
+
+        .lights-control {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+        }
+
+        .light-button {
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .light-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 8px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            transition: all 0.3s;
+        }
+
+        .light-button.active .light-icon {
+            background: var(--warning);
+            color: #000;
+            box-shadow: 0 0 20px rgba(255, 165, 2, 0.6);
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(22, 33, 62, 0.97);
+            padding: 18px 28px;
+            border-radius: 15px;
+            border-left: 5px solid var(--accent);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            transform: translateX(120%);
+            transition: transform 0.5s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .speed-display {
+                width: 240px;
+                height: 240px;
+            }
+
+            .speed-value {
+                font-size: 4.5rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .status-bar {
+                flex-direction: column;
+                text-align: center;
+                gap: 12px;
+            }
+
+            .speed-display {
+                width: 200px;
+                height: 200px;
+            }
+
+            .speed-value {
+                font-size: 3.8rem;
+            }
+
+            .dir-btn {
+                height: 70px;
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="dashboard-container">
+        <div class="status-bar">
+            <div class="car-info">
+                <h2>NEXUS HYPERCAR</h2>
+                <p>Premium Control Interface</p>
+            </div>
+            <div class="connection-status">
+                <div class="connection-dot"></div>
+                <span id="connStatus">Connecting...</span>
+            </div>
+        </div>
+
+        <div class="dashboard">
+            <!-- LEFT -->
+            <div class="left-panel">
+                <div class="speed-panel">
+                    <h3><i class="fas fa-tachometer-alt"></i> SPEED & METRICS</h3>
+                    <div class="speed-display">
+                        <div class="speed-circle" id="speedCircle"></div>
+                        <div class="speed-value">0<span class="speed-unit"> km/h</span></div>
+                    </div>
+                    <div style="display:flex; justify-content:space-around; width:100%; margin-top:20px;">
+                        <div><small>BATTERY</small>
+                            <p style="font-size:1.6rem; color:var(--success);">98%</p>
+                        </div>
+                        <div><small>RANGE</small>
+                            <p style="font-size:1.6rem; color:var(--accent);">420 km</p>
+                        </div>
+                        <div><small>POWER</small>
+                            <p style="font-size:1.6rem; color:var(--warning);">320 HP</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3><i class="fas fa-gamepad"></i> MOVEMENT</h3>
+                    <div class="directional-controls">
+                        <button class="dir-btn forward"><i class="fas fa-arrow-up"></i></button>
+                        <button class="dir-btn left"><i class="fas fa-arrow-left"></i></button>
+                        <button class="dir-btn right"><i class="fas fa-arrow-right"></i></button>
+                        <button class="dir-btn backward"><i class="fas fa-arrow-down"></i></button>
+                    </div>
+                    <button id="brake-btn"><i class="fas fa-stop-circle"></i> EMERGENCY BRAKE</button>
+                </div>
+            </div>
+
+            <!-- RIGHT -->
+            <div class="right-panel">
+                <div class="gear-panel">
+                    <h3><i class="fas fa-cogs"></i> GEAR</h3>
+                    <div class="gear-stick">
+                        <div class="gear-knob" id="knob"></div>
+                    </div>
+                    <div class="gear-positions">
+                        <div class="gear" data-gear="P">P</div>
+                        <div class="gear" data-gear="R">R</div>
+                        <div class="gear active" data-gear="N">N</div>
+                        <div class="gear" data-gear="D">D</div>
+                        <div class="gear" data-gear="S">S</div>
+                    </div>
+                </div>
+
+                <div class="start-panel">
+                    <h3><i class="fas fa-power-off"></i> ENGINE</h3>
+                    <div class="start-button" id="startButton"><i class="fas fa-play"></i></div>
+                    <p>Press to start/stop engine</p>
+                </div>
+
+                <div class="control-group">
+                    <h3><i class="fas fa-lightbulb"></i> LIGHTS</h3>
+                    <div class="lights-control">
+                        <div class="light-button" data-light="head">
+                            <div class="light-icon"><i class="fas fa-car"></i></div><span>Head</span>
+                        </div>
+                        <div class="light-button active" data-light="int">
+                            <div class="light-icon"><i class="fas fa-lightbulb"></i></div><span>Interior</span>
+                        </div>
+                        <div class="light-button" data-light="hazard">
+                            <div class="light-icon"><i class="fas fa-exclamation-triangle"></i></div><span>Hazard</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"><strong id="notifTitle">Ready</strong>
+        <p id="notifText">Dashboard loaded</p>
+    </div>
+
+    <script>
+        // ==================== CONFIG ====================
+        const ESP32_IP = "192.168.1.100";  // ←←← CHANGE THIS TO YOUR CAR'S IP
+
+        // ==================== STATE ====================
+        let carOn = false;
+        let currentGear = 'N';
+        let currentSpeed = 0;
+        let isMoving = false;
+        let speedInterval = null;
+
+        // ==================== DOM ====================
+        const startBtn = document.getElementById('startButton');
+        const connStatus = document.getElementById('connStatus');
+        const speedValue = document.querySelector('.speed-value');
+        const speedCircle = document.getElementById('speedCircle');
+        const knob = document.getElementById('knob');
+        const notification = document.getElementById('notification');
+        const notifTitle = document.getElementById('notifTitle');
+        const notifText = document.getElementById('notifText');
+
+        // ==================== HELPERS ====================
+        const send = (cmd, value = '') => {
+            const url = `http://${ESP32_IP}${cmd}${value ? '?v=' + value : ''}`;
+            fetch(url, { mode: 'no-cors' })
+                .catch(() => { });
+        };
+
+        const notify = (title, msg, type = 'info') => {
+            notifTitle.textContent = title;
+            notifText.textContent = msg;
+            notification.style.borderLeftColor = { success: '#2ed573', danger: '#ff4757', warning: '#ffa502' }[type] || '#00d4ff';
+            notification.classList.add('show');
+            setTimeout(() => notification.classList.remove('show'), 3000);
+        };
+
+        const updateSpeed = (val) => {
+            currentSpeed = Math.max(0, Math.min(240, val));
+            speedValue.innerHTML = Math.round(currentSpeed) + '<span class="speed-unit"> km/h</span>';
+            const percent = (currentSpeed / 240) * 100;
+            speedCircle.style.background = `conic-gradient(var(--accent) 0% ${percent}%, transparent ${percent}% 100%)`;
+        };
+
+        const setGear = (gear) => {
+            document.querySelectorAll('.gear').forEach(g => g.classList.remove('active'));
+            document.querySelector(`.gear[data-gear="${gear}"]`).classList.add('active');
+            currentGear = gear;
+            const positions = { P: 5, R: 23, N: 50, D: 77, S: 95 };
+            knob.style.top = positions[gear] + '%';
+            send('/gear', gear);
+        };
+
+        // ==================== CONTROLS ====================
+        startBtn.addEventListener('click', () => {
+            carOn = !carOn;
+            startBtn.classList.toggle('active');
+            startBtn.innerHTML = carOn ? '<i class="fas fa-stop"></i>' : '<i class="fas fa-play"></i>';
+            send(carOn ? '/start' : '/stop');
+            notify(carOn ? 'Engine ON' : 'Engine OFF', carOn ? 'Ready to drive' : 'Car stopped', carOn ? 'success' : 'warning');
+        });
+
+        document.querySelectorAll('.gear').forEach(g => {
+            g.addEventListener('click', () => setGear(g.dataset.gear));
+        });
+
+        document.querySelectorAll('.dir-btn').forEach(btn => {
+            const cmd = btn.classList.contains('forward') ? '/forward' :
+                btn.classList.contains('backward') ? '/backward' :
+                    btn.classList.contains('left') ? '/left' : '/right';
+
+            btn.addEventListener('touchstart', e => { e.preventDefault(); isMoving = true; send(cmd); });
+            btn.addEventListener('touchend', () => { if (isMoving) send('/stop'); isMoving = false; });
+            btn.addEventListener('mousedown', () => { isMoving = true; send(cmd); });
+            btn.addEventListener('mouseup', () => { if (isMoving) send('/stop'); isMoving = false; });
+            btn.addEventListener('mouseleave', () => { if (isMoving) send('/stop'); isMoving = false; });
+        });
+
+        document.getElementById('brake-btn').addEventListener('click', () => {
+            send('/stop');
+            updateSpeed(0);
+            notify('BRAKE', 'Emergency stop activated', 'danger');
+        });
+
+        document.querySelectorAll('.light-button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.classList.toggle('active');
+                const state = btn.classList.contains('active') ? 'on' : 'off';
+                const type = btn.dataset.light;
+                send(`/light/${type}/${state}`);
+            });
+        });
+
+        // ==================== INIT ====================
+        setGear('N');
+        updateSpeed(0);
+        notify('Dashboard Ready', 'Change ESP32_IP and connect', 'info');
+
+        // Test connection every 3s
+        setInterval(() => {
+            fetch(`http://${ESP32_IP}/ping`, { mode: 'no-cors' })
+                .then(() => connStatus.textContent = "Connected")
+                .catch(() => connStatus.textContent = "Disconnected");
+        }, 3000);
+    </script>
+</body>
+
+</html>
